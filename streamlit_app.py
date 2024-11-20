@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-file_path = r'data\PIB_18.11.xlsx' 
+file_path = r'data/PIB_18.11.xlsx' 
 df = pd.read_excel(file_path)
 
 # Renomear colunas pra facilitar o uso
