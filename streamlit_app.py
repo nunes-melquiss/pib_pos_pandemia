@@ -2,6 +2,9 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
+
 
 file_path = r'data/PIB_18.11.xlsx' 
 df = pd.read_excel(file_path)
@@ -190,39 +193,47 @@ colunas_interesse = [
     "Atividade com terceiro maior valor adicionado bruto",
 ]
 
-dados_grafico = []
-for i, coluna in enumerate(colunas_interesse):
-    contagem = df_filtrado[coluna].value_counts().nlargest(3)  
-    for categoria, valor in contagem.items():
-        dados_grafico.append({
-            "Categoria": categoria,
-            "Contagem": valor,
-            "Posição": f"Posição {i+1}"  
-        })
 
-df_grafico = pd.DataFrame(dados_grafico)
 
+# Combinar todos os valores das colunas de interesse em uma única lista
+valores_unicos = df_filtrado[colunas_interesse].stack().dropna().astype(str).tolist()
+
+# Contar a frequência de cada valor único
+frequencia_valores = pd.Series(valores_unicos).value_counts().reset_index()
+frequencia_valores.columns = ['Categoria', 'Frequência']
+
+# Criar o gráfico de barras
 fig = px.bar(
-    df_grafico,
-    x="Posição",
-    y="Contagem",
-    color="Categoria",
-    barmode="group",
-    title="Categorias Mais Frequentes por Valor Adicionado Bruto",
-    labels={"Posição": "Importância", "Contagem": "Frequência", "Categoria": "Categoria"},
+    frequencia_valores,
+    x="Frequência",
+    y="Categoria",
+    orientation='h',
+    title="Recorrência da representatividade de setores da Econômia",
+    labels={"Frequência": "Quantidade de Ocorrências", "Categoria": "Categoria"}
 )
 
 fig.update_layout(
-    xaxis_title="Nível de Importância",
-    yaxis_title="Frequência",
-    legend_title="Categoria",
-    legend=dict(
-        orientation="h",  
-        yanchor="top",  
-        y=-0.2,  
-        xanchor="center",  
-        x=0.5  
-    ),
+    yaxis={'categoryorder': 'total ascending'},  # Ordenar de forma decrescente
     template="plotly_white"
 )
+
+# Exibir o gráfico no Streamlit
 st.plotly_chart(fig, use_container_width=True)
+
+
+st.write("")
+# Filtro para selecionar colunas
+colunas_disponiveis = df.columns.tolist()
+colunas_selecionadas = st.multiselect(
+    "Selecione as colunas que deseja visualizar:",
+    options=colunas_disponiveis,
+    default=[]
+)
+st.write("")
+# Exibir a tabela com as colunas selecionadas
+if colunas_selecionadas:
+    df_exibido = df_filtrado[colunas_selecionadas]
+    st.write("Tabela com colunas selecionadas:")
+    st.dataframe(df_exibido)
+else:
+    st.warning("Selecione pelo menos uma coluna para visualizar a tabela.")
