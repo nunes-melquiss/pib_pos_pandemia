@@ -145,6 +145,7 @@ else:
 
 # Grafico de contribuição dos setores
 
+
 fig = go.Figure()
 
 if exibir_municipios:
@@ -161,13 +162,18 @@ if exibir_municipios:
             )
 
 media_df = df_filtrado.groupby("Ano")[[setor + "_pct" for setor in setores_selecionados]].mean().reset_index()
-for setor in setores_selecionados:
+
+# Cores diferentes para cada setor
+cores_medias = ["blue", "green", "red", "orange", "purple", "brown", "pink"]  # Adicione cores conforme necessário
+
+for i, setor in enumerate(setores_selecionados):
+    cor = cores_medias[i % len(cores_medias)]  # Para evitar erros, usa o índice modular no caso de muitos setores
     fig.add_trace(
         go.Scatter(
             x=media_df["Ano"],
             y=media_df[setor + "_pct"],
             mode="lines",
-            line=dict(dash="dash", color="black"),
+            line=dict(dash="dash", color=cor),
             name=f"Média - {setor}"
         )
     )
@@ -181,7 +187,6 @@ fig.update_layout(
 )
 
 st.plotly_chart(fig, use_container_width=True)
-
 
 
 
